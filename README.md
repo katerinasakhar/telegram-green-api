@@ -1,0 +1,62 @@
+# Telegram-чат на GREEN-API (тестовое задание)
+
+Интерфейс отправки и получения **текстовых** сообщений в
+Telegram через сервис [GREEN-API](https://green-api.com/telegram/).
+Стек — React (Vite).
+
+
+
+## Установка и запуск
+
+```bash
+npm install
+npm run dev
+```
+
+## Настройка GREEN-API
+
+При первом запуске откроется окно настроек. Укажите данные вашего
+инстанса из личного кабинета GREEN-API (раздел Telegram):
+
+- **API URL инстанса** — например `https://7105.api.green-api.com`
+- **idInstance**
+- **apiTokenInstance**
+
+Новый диалог создаётся кнопкой `+` в заголовке списка чатов. Введите номер
+телефона в международном формате (например, `+79991234567`) или Telegram-ник
+(`@username`). GREEN-API проверит аккаунт и вернёт его `chatId`. Поиск по номеру
+может не сработать, если аккаунт не найден или пользователь скрыл номер настройками
+приватности.
+
+Для каждого `chatId` создаётся своя история сообщений; список диалогов и их
+переписка сохраняются в `localStorage` браузера.
+
+Значения сохраняются в `localStorage` браузера — бэкенд не требуется.
+
+## Как это работает
+
+- **Отправка** — по нажатию «Отправить» или `Enter` вызывается
+  `sendMessage()`, которая делает `POST` на метод `SendMessage` с телом
+  `{ chatId, message }`. Сообщение сразу оптимистично добавляется в ленту.
+- **Поиск** — перед созданием чата вызывается `CheckAccount` с `phoneNumber` или
+  `username`; ответ содержит `chatId`, который используется для отправки.
+- **Получение** — в фоне крутится цикл: `receiveNotification()` ждёт
+  уведомление из очереди (до 5 секунд), если пришло входящее текстовое
+  сообщение (`typeWebhook: "incomingMessageReceived"`,
+  `typeMessage: "textMessage"`) — оно добавляется в чат, после чего
+  уведомление удаляется из очереди через `deleteNotification()`, и цикл
+  повторяется. Это и есть Receiving Technology HTTP API без вебхуков.
+
+## Структура проекта
+
+```
+telegram-green-api/
+├─ src/
+│  ├─ api/greenApi.js   # обёртка над SendMessage / ReceiveNotification / DeleteNotification
+│  ├─ App.jsx            # UI чата + polling
+│  ├─ App.css            # стили в духе web.max.ru
+│  └─ main.jsx
+├─ index.html
+├─ package.json
+└─ vite.config.js
+```
