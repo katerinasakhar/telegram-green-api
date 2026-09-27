@@ -18,9 +18,10 @@ npm run dev
 При первом запуске откроется окно настроек. Укажите данные вашего
 инстанса из личного кабинета GREEN-API (раздел Telegram):
 
-- **API URL инстанса** — например `https://7105.api.green-api.com`
 - **idInstance**
 - **apiTokenInstance**
+
+Все запросы отправляются на общий адрес `https://api.green-api.com`.
 
 Новый диалог создаётся кнопкой `+` в заголовке списка чатов. Введите номер
 телефона в международном формате (например, `+79991234567`) или Telegram-ник
@@ -47,16 +48,4 @@ npm run dev
   уведомление удаляется из очереди через `deleteNotification()`, и цикл
   повторяется. Это и есть Receiving Technology HTTP API без вебхуков.
 
-## Структура проекта
 
-```
-telegram-green-api/
-├─ src/
-│  ├─ api/greenApi.js   # обёртка над SendMessage / ReceiveNotification / DeleteNotification
-│  ├─ App.jsx            # UI чата + polling
-│  ├─ App.css            # стили в духе web.max.ru
-│  └─ main.jsx
-├─ index.html
-├─ package.json
-└─ vite.config.js
-```

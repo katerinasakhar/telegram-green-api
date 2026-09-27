@@ -1,27 +1,17 @@
-// Тонкая обёртка над GREEN-API (раздел Telegram: https://green-api.com/telegram/).
-// Используются методы GREEN-API для поиска, отправки и получения сообщений:
-//   1. CheckAccount          — поиск Telegram-аккаунта по телефону или username
-//   2. SendMessage           — отправка текстового сообщения
-//   3. ReceiveNotification   — получение одного уведомления из очереди (long polling)
-//   4. DeleteNotification    — удаление обработанного уведомления из очереди
 
 /**
  * @typedef {Object} GreenApiConfig
- * @property {string} apiUrl          Базовый URL инстанса, например https://7105.api.green-api.com
  * @property {string} idInstance
  * @property {string} apiTokenInstance
  */
 
+const API_URL = 'https://api.green-api.com'
+
 function buildUrl(config, method, query = '') {
-  const base = config.apiUrl.replace(/\/+$/, '')
-  return `${base}/waInstance${config.idInstance}/${method}/${config.apiTokenInstance}${query}`
+  return `${API_URL}/waInstance${config.idInstance}/${method}/${config.apiTokenInstance}${query}`
 }
 
-/**
- * Отправить текстовое сообщение.
- * POST {{apiUrl}}/waInstance{{idInstance}}/sendMessage/{{apiTokenInstance}}
- * body: { chatId, message }
- */
+
 export async function sendMessage(config, chatId, message) {
   const res = await fetch(buildUrl(config, 'sendMessage'), {
     method: 'POST',
@@ -35,12 +25,10 @@ export async function sendMessage(config, chatId, message) {
     throw new Error(data?.message || `SendMessage: HTTP ${res.status}`)
   }
 
-  return data // { idMessage }
+  return data 
 }
 
-/**
- * Найти Telegram-аккаунт по международному номеру телефона или username.
- */
+
 export async function checkAccount(config, identifier) {
   const res = await fetch(buildUrl(config, 'checkAccount'), {
     method: 'POST',
@@ -57,11 +45,6 @@ export async function checkAccount(config, identifier) {
   return data
 }
 
-/**
- * Получить одно уведомление из очереди (ждёт до receiveTimeout секунд).
- * GET {{apiUrl}}/waInstance{{idInstance}}/receiveNotification/{{apiTokenInstance}}?receiveTimeout=5
- * Возвращает null, если очередь пуста.
- */
 export async function receiveNotification(config, receiveTimeout = 5, signal) {
   const res = await fetch(
     buildUrl(config, 'receiveNotification', `?receiveTimeout=${receiveTimeout}`),
@@ -87,10 +70,8 @@ export async function receiveNotification(config, receiveTimeout = 5, signal) {
   return data // { receiptId, body }
 }
 
-/**
- * Удалить обработанное уведомление из очереди.
- * DELETE {{apiUrl}}/waInstance{{idInstance}}/deleteNotification/{{apiTokenInstance}}/{{receiptId}}
- */
+
+
 export async function deleteNotification(config, receiptId, signal) {
   const res = await fetch(buildUrl(config, `deleteNotification`, '') + `/${receiptId}`, {
     method: 'DELETE',
@@ -105,11 +86,7 @@ export async function deleteNotification(config, receiptId, signal) {
   return res.ok
 }
 
-/**
- * Достаём из тела уведомления только то, что нужно для отображения
- * текстового входящего сообщения. Прочие типы уведомлений (статусы
- * доставки, исходящие сообщения с других устройств и т.д.) игнорируются.
- */
+
 export function parseIncomingText(notificationBody) {
   if (!notificationBody) return null
   if (notificationBody.typeWebhook !== 'incomingMessageReceived') return null

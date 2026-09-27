@@ -6,7 +6,6 @@ const CHATS_STORAGE_KEY = 'green-api-telegram-chats'
 const ACTIVE_CHAT_STORAGE_KEY = 'green-api-telegram-active-chat'
 
 const defaultSettings = {
-  apiUrl: '',
   idInstance: '',
   apiTokenInstance: '',
 }
@@ -15,8 +14,11 @@ function loadSettings() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return defaultSettings
-    const { chatId, ...savedSettings } = JSON.parse(raw)
-    return { ...defaultSettings, ...savedSettings }
+    const savedSettings = JSON.parse(raw)
+    return {
+      idInstance: savedSettings.idInstance || '',
+      apiTokenInstance: savedSettings.apiTokenInstance || '',
+    }
   } catch {
     return defaultSettings
   }
@@ -57,7 +59,7 @@ export default function App() {
   const [chats, setChats] = useState(() => loadChats(loadLegacyChatId()))
   const [settingsOpen, setSettingsOpen] = useState(() => {
     const s = loadSettings()
-    return !s.apiUrl || !s.idInstance || !s.apiTokenInstance
+    return !s.idInstance || !s.apiTokenInstance
   })
   const [draft, setDraft] = useState(settings)
 
@@ -74,7 +76,7 @@ export default function App() {
   const bottomRef = useRef(null)
   const seenIds = useRef(new Set())
 
-  const configured = settings.apiUrl && settings.idInstance && settings.apiTokenInstance
+  const configured = settings.idInstance && settings.apiTokenInstance
   const messages = chats.find((chat) => chat.chatId === activeChatId)?.messages || []
 
   useEffect(() => {
@@ -192,7 +194,6 @@ export default function App() {
   // --- settings ---------------------------------------------------------
   function saveSettings() {
     const cleaned = {
-      apiUrl: draft.apiUrl.trim().replace(/\/+$/, ''),
       idInstance: draft.idInstance.trim(),
       apiTokenInstance: draft.apiTokenInstance.trim(),
     }
@@ -321,7 +322,7 @@ export default function App() {
         <div className="chat__messages">
           {!configured && (
             <div className="hint">
-              Заполните настройки GREEN-API (idInstance, apiTokenInstance, apiUrl)
+              Заполните настройки GREEN-API (idInstance и apiTokenInstance)
               чтобы начать переписку, создайте диалог кнопкой +.
             </div>
           )}
@@ -360,16 +361,6 @@ export default function App() {
         <div className="modal-overlay">
           <div className="modal">
             <h2>Настройки GREEN-API</h2>
-
-            <label>
-              API URL инстанса
-              <input
-                type="text"
-                placeholder="https://7105.api.green-api.com"
-                value={draft.apiUrl}
-                onChange={(e) => setDraft({ ...draft, apiUrl: e.target.value })}
-              />
-            </label>
 
             <label>
               idInstance
