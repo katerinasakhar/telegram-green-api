@@ -56,6 +56,9 @@ export default function App() {
   const [activeChatId, setActiveChatId] = useState(() => (
     localStorage.getItem(ACTIVE_CHAT_STORAGE_KEY) || loadLegacyChatId()
   ))
+  const [mobileView, setMobileView] = useState(() => (
+    localStorage.getItem(ACTIVE_CHAT_STORAGE_KEY) || loadLegacyChatId() ? 'chat' : 'list'
+  ))
   const [chats, setChats] = useState(() => loadChats(loadLegacyChatId()))
   const [settingsOpen, setSettingsOpen] = useState(() => {
     const s = loadSettings()
@@ -252,6 +255,7 @@ export default function App() {
           : [...prev, { chatId, displayName, messages: [], unreadCount: 0 }]
       })
       setActiveChatId(chatId)
+      setMobileView('chat')
       setInput('')
       setError('')
       setNewChatOpen(false)
@@ -264,6 +268,7 @@ export default function App() {
 
   function selectChat(chatId) {
     setActiveChatId(chatId)
+    setMobileView('chat')
     setChats((prev) => prev.map((chat) => chat.chatId === chatId
       ? { ...chat, unreadCount: 0 }
       : chat))
@@ -275,7 +280,7 @@ export default function App() {
   const chatTitle = activeChat?.displayName || activeChatId || 'Выберите собеседника'
 
   return (
-    <div className="app">
+    <div className={`app ${mobileView === 'chat' ? 'app--mobile-chat' : 'app--mobile-list'}`}>
       <aside className="sidebar">
         <div className="sidebar__top">
           <div className="sidebar__header">Telegram</div>
@@ -313,6 +318,14 @@ export default function App() {
 
       <main className="chat">
         <header className="chat__header">
+          <button
+            className="mobile-back-btn"
+            onClick={() => setMobileView('list')}
+            aria-label="Вернуться к списку чатов"
+            title="К списку чатов"
+          >
+            ‹
+          </button>
           <div className="chat__title">{chatTitle}</div>
           <div className={`status ${connected ? 'status--on' : 'status--off'}`}>
             {connected ? 'В сети' : 'Нет соединения'}
